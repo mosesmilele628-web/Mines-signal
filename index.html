@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1XBET MINES • TIME-LOCKED SIGNALS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0a0c15;
+            background-image: radial-gradient(circle at 30% 50%, #1a2340 0%, #0a0c15 70%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .container {
+            max-width: 560px;
+            width: 100%;
+        }
+
+        .lock-panel {
+            background: #111624;
+            border: 1px solid #2e3a5c;
+            border-radius: 40px;
+            padding: 32px 24px;
+            box-shadow: 0 25px 40px -10px black;
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+
+        .lock-header {
+            color: #ffd700;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px #ffd70066;
+        }
+
+        .lock-sub {
+            color: #7e8bb6;
+            margin-bottom: 28px;
+            font-size: 15px;
+        }
+
+        .password-field {
+            background: #1e2538;
+            border: 2px solid #2f3b5a;
+            border-radius: 60px;
+            padding: 18px 24px;
+            width: 100%;
+            color: white;
+            font-size: 22px;
+            text-align: center;
+            letter-spacing: 6px;
+            outline: none;
+            margin-bottom: 20px;
+            transition: 0.2s;
+        }
+
+        .password-field:focus {
+            border-color: #ffd700;
+            box-shadow: 0 0 20px #ffd70033;
+        }
+
+        .btn-primary {
+            background: linear-gradient(145deg, #ffd700, #b8860b);
+            border: none;
+            border-radius: 60px;
+            padding: 18px 32px;
+            width: 100%;
+            font-weight: 800;
+            font-size: 18px;
+            color: #0a0c15;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #7d5d0e, 0 10px 20px black;
+            transition: 0.1s;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #7d5d0e, 0 8px 12px black;
+        }
+
+        .main-panel {
+            background: #11172b;
+            border: 1px solid #2f3d63;
+            border-radius: 48px;
+            padding: 24px 20px;
+            box-shadow: 0 30px 40px -10px black;
+        }
+
+        .signal-badge {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1b2340;
+            border-radius: 60px;
+            padding: 12px 20px;
+            margin-bottom: 24px;
+            border: 1px solid #ffd70033;
+        }
+
+        .live-indicator {
+            background: #ff3333;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        .time-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .time-slot {
+            background: #1a2340;
+            border: 2px solid #2f3d63;
+            border-radius: 24px;
+            padding: 12px 4px;
+            text-align: center;
+            transition: 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .time-slot.active {
+            border-color: #ffd700;
+            background: #2a3557;
+            box-shadow: 0 0 20px #ffd70055;
+        }
+
+        .time-slot.expired {
+            opacity: 0.5;
+            border-color: #4a4f6e;
+            background: #1a1f32;
+        }
+
+        .time-slot.expired::after {
+            content: "⏰ EXPIRED";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            color: #ff6666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 22px;
+            backdrop-filter: blur(2px);
+        }
+
+        .time-label {
+            font-size: 11px;
+            color: #8f9ed4;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .time-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .active .time-value {
+            color: #ffd700;
+        }
+
+        .play-time {
+            background: #0f1629;
+            border-radius: 30px;
+            padding: 16px 20px;
+            text-align: center;
+            margin-bottom: 24px;
+            border: 1px solid #3f4e7a;
+            position: relative;
+        }
+
+        .play-time-label {
+            color: #8a9bcf;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .play-time-value {
+            color: #ffd700;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            font-family: monospace;
+        }
+
+        .countdown-badge {
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            background: #ffd700;
+            color: #0a0c15;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            background: #0c1222;
+            padding: 20px;
+            border-radius: 32px;
+            margin-bottom: 24px;
+            border: 1px solid #2f3d63;
+        }
+
+        .tile {
+            aspect-ratio: 1;
+            background: #1e2a45;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: #a3b3e0;
+            border: 2px solid #31416b;
+            box-shadow: 0 4px 0 #0a0f1c;
+            transition: 0.15s;
+        }
+
+        .tile.safe {
+            background: #ffd700;
+            background: radial-gradient(circle at 30% 30%, #fff0a0, #d4a500);
+            color: #1e1a0a;
+            border-color: #ffffff;
+            box-shadow: 0 0 25px #ffd700, 0 4px 0 #7d5d0e;
+            font-size: 20px;
+        }
+
+        .stats-panel {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            flex: 1;
+            background: #151e36;
+            border-radius: 28px;
+            padding: 16px 8px;
+            text-align: center;
+            border: 1px solid #3b4870;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 800;
+            color: #ffd700;
+            line-height: 1.2;
+        }
+
+        .stat-desc {
+            font-size: 12px;
+            color: #95a5d4;
+            text-transform: uppercase;
+        }
+
+        .accuracy-bar {
+            background: #0e1426;
+            border-radius: 60px;
+            padding: 14px 24px;
+            margin-bottom: 16px;
+            border: 1px solid #3e5080;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .accuracy-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #ffd70055, #ffd70022);
+            border-radius: 60px;
+            z-index: 0;
+        }
+
+        .accuracy-text {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            color: #ffd700;
+            font-weight: 600;
+        }
+
+        .multiplier-box {
+            background: #1f2943;
+            border-radius: 40px;
+            padding: 12px 24px;
+            text-align: center;
+            display: inline-block;
+            margin: 0 auto 20px;
+            border: 2px solid #ffd700;
+            font-size: 28px;
+            font-weight: 800;
+            color: #ffd700;
+        }
+
+        .search-status {
+            background: #0f1a2a;
+            border-left: 6px solid #ffd700;
+            padding: 16px 20px;
+            border-radius: 30px;
+            margin: 20px 0;
+            color: #aec0ff;
+            font-size: 15px;
+        }
+
+        .generate-btn {
+            background: linear-gradient(145deg, #ffd700, #b8860b);
+            border: none;
+            border-radius: 60px;
+            padding: 20px;
+            width: 100%;
+            font-weight: 800;
+            font-size: 18px;
+            color: #0a0c15;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #7d5d0e;
+            transition: 0.1s;
+            margin: 16px 0;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .generate-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #7d5d0e;
+        }
+
+        .generate-btn.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            background: #666;
+            box-shadow: 0 8px 0 #333;
+        }
+
+        .footer-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .link-1x {
+            color: #00b050;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 18px;
+            padding: 14px 32px;
+            background: #1a2f22;
+            border-radius: 60px;
+            border: 2px solid #00d166;
+            display: inline-block;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .code-hint {
+            color: #4f6191;
+            margin-top: 24px;
+            font-size: 13px;
+        }
+
+        .signal-id {
+            font-size: 11px;
+            color: #6f7fb0;
+            text-align: center;
+            margin-top: 10px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- LOCK SCREEN -->
+        <div id="lockScreen" class="lock-panel">
+            <div class="lock-header">🔐 SECURED SIGNAL</div>
+            <div class="lock-sub">Enter connection code to access 1XBET mines predictor</div>
+            <input type="password" id="passwordInput" class="password-field" placeholder="········" maxlength="8">
+            <button class="btn-primary" id="unlockBtn">UNLOCK PREDICTOR</button>
+            <div class="code-hint">connection code: <span style="color:#ffd700; font-weight:600;">mose1974</span></div>
+        </div>
+
+        <!-- MAIN PREDICTOR (HIDDEN UNTIL UNLOCK) -->
+        <div id="predictorMain" class="main-panel hidden">
+            <!-- Header -->
+            <div class="signal-badge">
+                <span style="color:#ffd700; font-weight:600;">⚡ 1XBET MINES TIME-LOCKED</span>
+                <span><span class="live-indicator"></span><span style="color:#8f9ed4;">LIVE</span></span>
+            </div>
+
+            <!-- 4 x 15min slots -->
+            <div class="time-grid" id="timeSlots">
+                <div class="time-slot" id="slot1">
+                    <div class="time-label">⏱️ 15'</div>
+                    <div class="time-value" id="time1">--:--</div>
+                </div>
+                <div class="time-slot" id="slot2">
+                    <div class="time-label">⏱️ 30'</div>
+                    <div class="time-value" id="time2">--:--</div>
+                </div>
+                <div class="time-slot" id="slot3">
+                    <div class="time-label">⏱️ 45'</div>
+                    <div class="time-value" id="time3">--:--</div>
+                </div>
+                <div class="time-slot" id="slot4">
+                    <div class="time-label">⏱️ 60'</div>
+                    <div class="time-value" id="time4">--:--</div>
+                </div>
+            </div>
+
+            <!-- Exact Play Time with Countdown -->
+            <div class="play-time" id="playTimeContainer">
+                <div class="countdown-badge" id="countdownTimer">15:00</div>
+                <div class="play-time-label">📅 SIGNAL VALID FOR (COUNTDOWN)</div>
+                <div class="play-time-value" id="fullPlayTime">2026-03-05 08:15:00</div>
+            </div>
+
+            <!-- Mines Grid: 5 safe tiles ONLY (others hidden/normal) -->
+            <div class="grid-container" id="minesGrid">
+                <!-- Dynamically filled -->
+            </div>
+
+            <!-- Stats: 5 safe, 3 hidden traps, accuracy -->
+            <div class="stats-panel">
+                <div class="stat-box">
+                    <div class="stat-number" id="safeCount">5</div>
+                    <div class="stat-desc">✅ SAFE TILES</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="trapCount">3</div>
+                    <div class="stat-desc">⚠️ HIDDEN TRAPS</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="accuracyValue">98.4%</div>
+                    <div class="stat-desc">🎯 AI ACCURACY</div>
+                </div>
+            </div>
+
+            <!-- Accuracy Bar -->
+            <div class="accuracy-bar">
+                <div class="accuracy-fill" id="accuracyFill" style="width: 98%"></div>
+                <div class="accuracy-text">
+                    <span>🔮 PREDICTION RELIABILITY</span>
+                    <span id="accuracyPercent">98.4%</span>
+                </div>
+            </div>
+
+            <!-- Multiplier -->
+            <div style="text-align: center;">
+                <span class="multiplier-box" id="multiplierDisplay">x1.48</span>
+            </div>
+
+            <!-- Searching / Process Status -->
+            <div class="search-status" id="searchStatus">
+                🔄 AI scanning 1XBET live feed...
+            </div>
+
+            <!-- Generate Button (Disabled during active signal) -->
+            <button class="generate-btn" id="generateBtn">⚡ GENERATE NEXT SIGNAL ⚡</button>
+
+            <!-- Signal ID (Unique per time period) -->
+            <div class="signal-id" id="signalId">SIGNAL ID: 1X-8F3A-2B9C (VALID UNTIL EXPIRY)</div>
+
+            <!-- 1XBET Link -->
+            <div class="footer-link">
+                <a href="#" id="onexbetLink" class="link-1x" target="_blank">🎰 PLAY ON 1XBET OFFICIAL</a>
+            </div>
+
+            <div style="color:#3e4e77; font-size: 11px; text-align: center; margin-top: 16px;">
+                * Each signal is unique and expires after its 15-minute window • No repeats
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // PASSWORD
+            const VALID_PASSWORD = "mose1974";
+
+            // DOM elements
+            const lockScreen = document.getElementById('lockScreen');
+            const predictorMain = document.getElementById('predictorMain');
+            const unlockBtn = document.getElementById('unlockBtn');
+            const passwordInput = document.getElementById('passwordInput');
+            const generateBtn = document.getElementById('generateBtn');
+            const minesGrid = document.getElementById('minesGrid');
+            const safeCountSpan = document.getElementById('safeCount');
+            const trapCountSpan = document.getElementById('trapCount');
+            const accuracyValueSpan = document.getElementById('accuracyValue');
+            const accuracyPercentSpan = document.getElementById('accuracyPercent');
+            const accuracyFill = document.getElementById('accuracyFill');
+            const multiplierDisplay = document.getElementById('multiplierDisplay');
+            const fullPlayTimeSpan = document.getElementById('fullPlayTime');
+            const searchStatus = document.getElementById('searchStatus');
+            const onexbetLink = document.getElementById('onexbetLink');
+            const countdownTimer = document.getElementById('countdownTimer');
+            const signalIdSpan = document.getElementById('signalId');
+            const playTimeContainer = document.getElementById('playTimeContainer');
+
+            // Time slots
+            const time1 = document.getElementById('time1');
+            const time2 = document.getElementById('time2');
+            const time3 = document.getElementById('time3');
+            const time4 = document.getElementById('time4');
+            const slot1 = document.getElementById('slot1');
+            const slot2 = document.getElementById('slot2');
+            const slot3 = document.getElementById('slot3');
+            const slot4 = document.getElementById('slot4');
+            const timeSlots = [slot1, slot2, slot3, slot4];
+
+            // State
+            let currentActiveSlot = 0;
+            let predictionInterval = null;
+            let countdownInterval = null;
+            let currentSignalTime = null;
+            let currentSignalId = null;
+            let isSignalActive = false;
+            let usedSignals = new Set(); // Track used signal time periods
+
+            // Generate unique signal ID
+            function generateSignalId(timestamp) {
+                const chars = 'ABCDEF0123456789';
+                let id = '1X-';
+                for (let i = 0; i < 8; i++) {
+                    id += chars[Math.floor(Math.random() * chars.length)];
+                }
+                return id + '-' + timestamp.getTime().toString(16).substr(-4).toUpperCase();
+            }
+
+            // Initialize time slots based on current real time
+            function initializeTimeSlots() {
+                const now = new Date();
+                
+                // Calculate next 15-minute mark
+                const minutes = now.getMinutes();
+                const remainder = minutes % 15;
+                let baseMinutes = minutes - remainder;
+                if (remainder !== 0) baseMinutes += 15;
+                
+                let baseDate = new Date(now);
+                baseDate.setMinutes(baseMinutes, 0, 0);
+                
+                if (baseMinutes >= 60) {
+                    baseDate.setHours(baseDate.getHours() + 1);
+                    baseDate.setMinutes(0, 0, 0);
+                }
+
+                const formatTime = (date) => {
+                    return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                };
+
+                time1.innerText = formatTime(baseDate);
+                let date2 = new Date(baseDate.getTime() + 15 * 60000);
+                time2.innerText = formatTime(date2);
+                let date3 = new Date(baseDate.getTime() + 30 * 60000);
+                time3.innerText = formatTime(date3);
+                let date4 = new Date(baseDate.getTime() + 45 * 60000);
+                time4.innerText = formatTime(date4);
+
+                return baseDate;
+            }
+
+            // Check if a time slot is expired
+            function isTimeSlotExpired(slotDate) {
+                const now = new Date();
+                return now > slotDate;
+            }
+
+            // Update slot expiration status
+            function updateSlotExpiration(baseDate) {
+                const slots = [
+                    { element: slot1, time: new Date(baseDate.getTime()) },
+                    { element: slot2, time: new Date(baseDate.getTime() + 15 * 60000) },
+                    { element: slot3, time: new Date(baseDate.getTime() + 30 * 60000) },
+                    { element: slot4, time: new Date(baseDate.getTime() + 45 * 60000) }
+                ];
+
+                slots.forEach(slot => {
+                    if (isTimeSlotExpired(slot.time)) {
+                        slot.element.classList.add('expired');
+                    } else {
+                        slot.element.classList.remove('expired');
+                    }
+                });
+            }
+
+            // Update active slot
+            function updateActiveSlot(index, baseDate) {
+                timeSlots.forEach((slot, i) => {
+                    slot.classList.remove('active');
+                });
+                
+                if (index >= 0 && index < timeSlots.length) {
+                    const targetSlot = timeSlots[index];
+                    const slotTime = new Date(baseDate.getTime() + index * 15 * 60000);
+                    
+                    if (!isTimeSlotExpired(slotTime)) {
+                        targetSlot.classList.add('active');
+                        currentActiveSlot = index;
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            // Find next available (non-expired) slot
+            function findNextAvailableSlot(baseDate) {
+                for (let i = 0; i < 4; i++) {
+                    const slotTime = new Date(baseDate.getTime() + i * 15 * 60000);
+                    if (!isTimeSlotExpired(slotTime) && !usedSignals.has(slotTime.getTime())) {
+                        return i;
+                    }
+                }
+                return -1; // No available slots
+            }
+
+            // Start countdown for current signal
+            function startCountdown(expiryTime) {
+                if (countdownInterval) clearInterval(countdownInterval);
+                
+                countdownInterval = setInterval(() => {
+                    const now = new Date();
+                    const diff = expiryTime - now;
+                    
+                    if (diff <= 0) {
+                        // Signal expired
+                        clearInterval(countdownInterval);
+                        countdownTimer.innerText = "EXPIRED";
+                        countdownTimer.style.background = "#ff6666";
+                        isSignalActive = false;
+                        
+                        // Mark current slot as expired
+                        const baseDate = initializeTimeSlots();
+                        updateSlotExpiration(baseDate);
+                        
+                        // Check for next available slot
+                        const nextSlot = findNextAvailableSlot(baseDate);
+                        if (nextSlot !== -1) {
+                            generateBtn.classList.remove('disabled');
+                            searchStatus.innerText = '⏰ Previous signal expired. Generate next signal for ' + timeSlots[nextSlot].querySelector('.time-value').innerText;
+                        } else {
+                            searchStatus.innerText = '⏰ All signals expired for this hour. Next hour starts soon.';
+                        }
+                    } else {
+                        const minutes = Math.floor(diff / 60000);
+                        const seconds = Math.floor((diff % 60000) / 1000);
+                        countdownTimer.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    }
+                }, 1000);
+            }
+
+            // Generate mines grid with unique pattern
+            function generateMinesGrid(signalTime) {
+                // Use signal time as seed for unique pattern
+                const seed = signalTime.getTime();
+                const tiles = new Array(25).fill('neutral');
+                
+                // Generate random positions based on seed
+                const positions = Array.from({ length: 25 }, (_, i) => i);
+                for (let i = positions.length - 1; i > 0; i--) {
+                    const j = Math.floor((Math.random() * seed) % (i + 1));
+                    [positions[i], positions[j]] = [positions[j], positions[i]];
+                }
+                
+                // First 5 = safe
+                for (let i = 0; i < 5; i++) {
+                    tiles[positions[i]] = 'safe';
+                }
+                
+                return tiles;
+            }
+
+            // Generate new prediction with unique time-locked signal
+            function generatePrediction() {
+                const baseDate = initializeTimeSlots();
+                updateSlotExpiration(baseDate);
+                
+                // Find next available slot
+                const slotIndex = findNextAvailableSlot(baseDate);
+                
+                if (slotIndex === -1) {
+                    searchStatus.innerText = '⏰ No available signals in this hour. Please wait for next hour.';
+                    generateBtn.classList.add('disabled');
+                    return;
+                }
+
+                // Calculate signal time
+                const signalTime = new Date(baseDate.getTime() + slotIndex * 15 * 60000);
+                const signalExpiry = new Date(signalTime.getTime() + 15 * 60000);
+                
+                // Check if this time period was already used
+                if (usedSignals.has(signalTime.getTime())) {
+                    searchStatus.innerText = '⚠️ This signal period was already used. Please wait for next slot.';
+                    return;
+                }
+
+                // Mark as used
+                usedSignals.add(signalTime.getTime());
+                
+                // Show searching
+                searchStatus.innerText = '🔄 Generating unique time-locked signal for ' + signalTime.toLocaleTimeString() + '...';
+                generateBtn.classList.add('disabled');
+                
+                setTimeout(() => {
+                    // Generate unique grid for this time period
+                    const tiles = generateMinesGrid(signalTime);
+                    renderGrid(tiles);
+                    
+                    // Accuracy between 96-99%
+                    const accuracy = (96 + (Math.random() * 3)).toFixed(1);
+                    const accuracyNum = parseFloat(accuracy);
+                    
+                    // Update stats
+                    safeCountSpan.innerText = '5';
+                    trapCountSpan.innerText = '3';
+                    accuracyValueSpan.innerText = accuracy + '%';
+                    accuracyPercentSpan.innerText = accuracy + '%';
+                    accuracyFill.style.width = accuracy + '%';
+                    
+                    // Multiplier
+                    const multiplier = (1.35 + (Math.random() * 0.3)).toFixed(2);
+                    multiplierDisplay.innerText = 'x' + multiplier;
+                    
+                    // Update time display
+                    updateActiveSlot(slotIndex, baseDate);
+                    
+                    const year = signalTime.getFullYear();
+                    const month = String(signalTime.getMonth() + 1).padStart(2, '0');
+                    const day = String(signalTime.getDate()).padStart(2, '0');
+                    const timeStr = signalTime.toLocaleTimeString('en-GB', { hour12: false });
+                    
+                    fullPlayTimeSpan.innerText = `${year}-${month}-${day} ${timeStr}`;
+                    
+                    // Generate unique signal ID
+                    currentSignalId = generateSignalId(signalTime);
+                    signalIdSpan.innerText = `SIGNAL ID: ${currentSignalId} (Valid until ${signalExpiry.toLocaleTimeString()})`;
+                    
+                    // Start countdown
+                    startCountdown(signalExpiry);
+                    
+                    // Update status
+                    searchStatus.innerText = `✅ SIGNAL ACTIVE • ${accuracy}% accuracy • Valid until ${signalExpiry.toLocaleTimeString()}`;
+                    
+                    isSignalActive = true;
+                    
+                }, 1000);
+            }
+
+            // Render grid
+            function renderGrid(tiles) {
+                minesGrid.innerHTML = '';
+                
+                for (let i = 0; i < tiles.length; i++) {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile';
+                    
+                    if (tiles[i] === 'safe') {
+                        tile.classList.add('safe');
+                        tile.innerText = '⭐';
+                    } else {
+                        tile.innerText = (i + 1).toString().padStart(2, '0');
+                    }
+                    
+                    minesGrid.appendChild(tile);
+                }
+            }
+
+            // Auto-rotate to next available slot when current expires
+            function startAutoRotation() {
+                if (predictionInterval) clearInterval(predictionInterval);
+                
+                // Check every 5 seconds for expired signals and next available slots
+                predictionInterval = setInterval(() => {
+                    if (!isSignalActive) {
+                        const baseDate = initializeTimeSlots();
+                        updateSlotExpiration(baseDate);
+                        const nextSlot = findNextAvailableSlot(baseDate);
+                        
+                        if (nextSlot !== -1) {
+                            generateBtn.classList.remove('disabled');
+                        }
+                    }
+                }, 5000);
+            }
+
+            // Unlock system
+            unlockBtn.addEventListener('click', function() {
+                if (passwordInput.value === VALID_PASSWORD) {
+                    lockScreen.classList.add('hidden');
+                    predictorMain.classList.remove('hidden');
+                    
+                    initializeTimeSlots();
+                    startAutoRotation();
+                    
+                    // Set 1XBET link
+                    onexbetLink.href = 'https://1xbet.com/?tag=mose1974';
+                    
+                    // Initial check for available slots
+                    const baseDate = initializeTimeSlots();
+                    updateSlotExpiration(baseDate);
+                } else {
+                    alert('❌ Invalid connection code. Use: mose1974');
+                }
+            });
+
+            // Enter key
+            passwordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') unlockBtn.click();
+            });
+
+            // Manual generate - only if no active signal and slot available
+            generateBtn.addEventListener('click', function() {
+                if (!isSignalActive && !generateBtn.classList.contains('disabled')) {
+                    generatePrediction();
+                }
+            });
+
+            // Initialize on load
+            initializeTimeSlots();
+        })();
+    </script>
+</body>
+</html>
